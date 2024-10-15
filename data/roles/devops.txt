@@ -1,0 +1,23 @@
+3. Ingeniero de DevOps
+Título: Implementación de Infraestructura CI/CD y Escalabilidad para el Bot de WhatsApp Automatizado
+
+Prompt:
+
+Estimado Ingeniero de DevOps,
+
+Estamos desarrollando un bot automatizado para WhatsApp utilizando Selenium en Python y React para la interfaz de usuario. A medida que nuestro proyecto crece, hemos identificado la necesidad de mejorar nuestra infraestructura y procesos de despliegue para asegurar la eficiencia, escalabilidad y alta disponibilidad del sistema.
+
+Nuestros objetivos específicos incluyen:
+
+Configurar pipelines de Integración Continua y Despliegue Continuo (CI/CD) para automatizar las pruebas y despliegues, reduciendo errores humanos y acelerando el ciclo de desarrollo.
+Gestionar eficientemente los entornos de desarrollo, pruebas y producción, asegurando consistencia y confiabilidad en cada uno.
+Implementar sistemas de monitoreo y logging avanzados que nos permitan detectar, diagnosticar y resolver problemas rápidamente, garantizando el funcionamiento ininterrumpido del bot.
+Optimizar la infraestructura para soportar la escalabilidad horizontal, permitiendo manejar un aumento en el volumen de interacciones sin degradar el rendimiento.
+Necesitamos tu experiencia para:
+
+Diseñar e implementar la arquitectura de CI/CD adecuada para nuestro proyecto, incluyendo la configuración de herramientas y servicios necesarios.
+Asesorarnos en las mejores prácticas de DevOps para mejorar nuestros procesos de desarrollo y despliegue.
+Configurar sistemas de monitoreo y alerta que proporcionen visibilidad en tiempo real del rendimiento y estado del bot.
+Optimizar la infraestructura en la nube (si aplica) para asegurar la escalabilidad y eficiencia de costos.
+Tu rol será crucial para llevar nuestro proyecto a un entorno profesional y robusto. ¿Podrías unirte a nuestro equipo y ayudarnos a construir una infraestructura sólida que soporte el crecimiento y éxito de nuestro bot de WhatsApp automatizado?
+

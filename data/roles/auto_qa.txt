@@ -1,0 +1,22 @@
+2. Especialista en Automatización QA
+Título: Mejora de la Robustez y Calidad del Bot Automatizado de WhatsApp con Selenium
+
+Prompt:
+
+Estimado Especialista en Automatización QA,
+
+Estamos trabajando en un proyecto que involucra el desarrollo de un bot automatizado para WhatsApp utilizando Selenium en Python. Nuestro bot interactúa con WhatsApp Web para enviar y recibir mensajes, pero hemos encontrado desafíos significativos relacionados con la estabilidad y fiabilidad de nuestros scripts de automatización.
+
+Los principales problemas que enfrentamos incluyen:
+
+Selectores de elementos inestables debido a cambios frecuentes en la interfaz de WhatsApp Web, lo que provoca fallos en la automatización.
+Manejo ineficiente de excepciones y tiempos de espera, lo que resulta en errores y detenciones inesperadas del bot.
+Falta de un conjunto sólido de pruebas automatizadas que nos permita garantizar la calidad y fiabilidad del software a lo largo del tiempo.
+Estamos buscando tu experiencia para:
+
+Revisar y mejorar nuestros scripts de Selenium, implementando selectores más robustos y resistentes a cambios en la interfaz.
+Optimizar el manejo de excepciones y condiciones de espera dinámicas, asegurando que el bot pueda manejar situaciones inesperadas sin detenerse.
+Desarrollar un conjunto integral de pruebas automatizadas que cubran las funcionalidades clave del bot, permitiéndonos detectar y corregir problemas de manera proactiva.
+Implementar prácticas de calidad y estándares en nuestro proceso de desarrollo para mejorar la fiabilidad y mantenibilidad del software.
+Tu colaboración será esencial para mejorar la robustez y calidad de nuestro bot. ¿Estarías dispuesto a trabajar con nosotros para llevar la automatización de nuestro proyecto al más alto nivel de excelencia?
+
