@@ -1,0 +1,19 @@
+1. Desarrollador Full Stack
+Título: Colaboración para la Integración y Optimización del Bot de WhatsApp con Python y React
+
+Prompt:
+
+Estimado Desarrollador Full Stack,
+
+Estamos desarrollando un bot automatizado para WhatsApp que utiliza Selenium en Python para automatizar las interacciones y React para la interfaz de usuario. Nuestro objetivo es crear una plataforma robusta y eficiente que permita la comunicación fluida con los usuarios a través de WhatsApp Web, y al mismo tiempo ofrecer una interfaz intuitiva para la gestión y monitorización de las interacciones.
+
+Actualmente, enfrentamos desafíos en la integración entre el backend y el frontend, especialmente en la comunicación en tiempo real y la actualización dinámica de datos. Además, buscamos optimizar el rendimiento general del bot, asegurando que sea escalable y mantenible a largo plazo.
+
+Necesitamos tu experiencia para:
+
+Diseñar y desarrollar APIs eficientes que permitan la comunicación fluida entre el backend en Python y el frontend en React.
+Optimizar el rendimiento del bot, identificando y resolviendo posibles cuellos de botella.
+Implementar mejores prácticas en arquitectura y diseño de software para garantizar la escalabilidad y mantenibilidad del sistema.
+Mejorar la interfaz de usuario, asegurando que sea intuitiva, receptiva y capaz de mostrar datos en tiempo real.
+¿Podrías ayudarnos a lograr una integración sólida y a optimizar nuestro sistema para ofrecer la mejor experiencia posible a nuestros usuarios y administradores? Tu experiencia será invaluable para llevar nuestro proyecto al siguiente nivel.
+

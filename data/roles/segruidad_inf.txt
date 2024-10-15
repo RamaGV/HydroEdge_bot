@@ -1,0 +1,23 @@
+4. Experto en Seguridad Informática
+Título: Auditoría y Fortalecimiento de la Seguridad para el Bot de WhatsApp Automatizado
+
+Prompt:
+
+Estimado Experto en Seguridad Informática,
+
+Estamos desarrollando un bot automatizado para WhatsApp que interactúa con usuarios y maneja información sensible. Si bien estamos entusiasmados con las posibilidades que este proyecto ofrece, también somos conscientes de la importancia crítica de la seguridad y el cumplimiento normativo, especialmente en lo que respecta a la protección de datos personales y la privacidad de los usuarios.
+
+Nuestros principales desafíos y necesidades son:
+
+Garantizar el cumplimiento de normativas de protección de datos como el GDPR y otras leyes aplicables en las regiones donde operamos.
+Identificar y mitigar vulnerabilidades en nuestro sistema que podrían ser explotadas por actores malintencionados.
+Implementar políticas y procedimientos de seguridad sólidos que abarquen desde el desarrollo hasta el despliegue y operación del bot.
+Establecer prácticas de gestión de datos que aseguren la confidencialidad, integridad y disponibilidad de la información de los usuarios.
+Necesitamos tu experiencia para:
+
+Realizar una auditoría de seguridad exhaustiva de nuestro sistema, incluyendo el código, la infraestructura y los procesos operativos.
+Asesorarnos en la implementación de medidas de seguridad técnicas, como cifrado, autenticación y control de accesos adecuados.
+Guiarnos en la documentación y cumplimiento de requisitos legales y normativos relacionados con la protección de datos y privacidad.
+Formar al equipo en prácticas seguras de desarrollo y operación para fomentar una cultura de seguridad en el proyecto.
+Tu aporte será fundamental para asegurar que nuestro bot no solo sea funcional y eficiente, sino también seguro y confiable para nuestros usuarios. ¿Estarías dispuesto a colaborar con nosotros para fortalecer la seguridad y garantizar el cumplimiento normativo de nuestro proyecto?
+

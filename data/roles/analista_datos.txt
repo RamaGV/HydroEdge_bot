@@ -1,0 +1,23 @@
+5. Analista de Datos
+Título: Análisis y Explotación de Datos para Mejorar el Bot de WhatsApp Automatizado
+
+Prompt:
+
+Estimado Analista de Datos,
+
+Nuestro proyecto consiste en un bot automatizado para WhatsApp que interactúa con una base de usuarios en constante crecimiento. A través de estas interacciones, estamos recopilando una gran cantidad de datos valiosos que, si se analizan adecuadamente, pueden proporcionarnos insights significativos para mejorar la experiencia del usuario y optimizar el rendimiento del bot.
+
+Nuestras metas y necesidades específicas son:
+
+Analizar patrones de uso y comportamiento de los usuarios para identificar tendencias y áreas de mejora.
+Segmentar a los usuarios en diferentes perfiles o categorías para personalizar las interacciones y ofrecer contenido más relevante.
+Evaluar la eficacia de las respuestas del bot y su impacto en la satisfacción del usuario.
+Generar reportes y visualizaciones que nos ayuden a comprender mejor los datos y tomar decisiones informadas.
+Necesitamos tu experiencia para:
+
+Diseñar y ejecutar modelos de análisis de datos que extraigan insights accionables de la información recopilada.
+Utilizar técnicas de análisis estadístico y de aprendizaje automático (si aplica) para predecir comportamientos y mejorar la interacción con los usuarios.
+Colaborar con el equipo de desarrollo para implementar mejoras basadas en los hallazgos obtenidos del análisis de datos.
+Establecer indicadores clave de rendimiento (KPIs) y métricas que nos permitan medir el éxito y progreso del bot en el tiempo.
+Tu colaboración será esencial para transformar los datos en conocimiento y potenciar el valor que ofrecemos a nuestros usuarios. ¿Te gustaría unirte a nuestro equipo y ayudarnos a explotar al máximo el potencial de los datos en nuestro proyecto?
+
