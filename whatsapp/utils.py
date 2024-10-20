@@ -10,11 +10,6 @@ class HistoryZipProcessor:
     def __init__(self, base_directory: str):
         self.base_directory = base_directory
         self.state = "INIT"
-        
-        # Ejemplo de uso del procesador
-        # directory_historiales = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
-        # processor = HistoryZipProcessor(directory_historiales)
-        # processor.run()
     
     #                                        #
     #       FSM - Finite State Machine       #
@@ -26,18 +21,22 @@ class HistoryZipProcessor:
             sleep(1)
             
             if self.state == "INIT":
-                self.init()
+                self.init_state()
             elif self.state == "PROCESS_FILES":
-                self.process_files()
+                self.process_files_state()
+            elif self.state == "PROCESS_DIRECTORIES":
+                self.process_directories_state()
             elif self.state == "END":
-                self.end()
+                self.end_state()
                 break
     
     def get_current_action(self):
         if self.state == "INIT":
             return "Inicializando el procesador"
         elif self.state == "PROCESS_FILES":
-            return "Procesando archivos ZIP en el directorio"
+            return "Procesando archivos ZIP en /data/historiales"
+        elif self.state == "PROCESS_DIRECTORIES":
+            return "Clasificando directorios de contactos"
         elif self.state == "END":
             return "Proceso finalizado"
         return "Esperando..."
@@ -57,28 +56,41 @@ class HistoryZipProcessor:
         print(border)
     
     #                                        #
-    #    Métodos de estado y transiciones    #
+    #    Métodos de estados y transiciones   #
     #                                        #
     
-    def init(self):
+    def init_state(self):
         self.state = "PROCESS_FILES"
     
-    def process_files(self):
+    def process_files_state(self):
         # Procesar todos los archivos .zip del directorio base
-
+        
         with os.scandir(self.base_directory) as entries:
             for entry in entries:
                 if entry.is_file() and entry.name.endswith(".zip"):
-                    zip_file_path = entry.path
-                    
                     # Crear un hilo para procesar cada archivo de forma independiente
-                    processing_thread = threading.Thread(target=self.process_zip, args=(zip_file_path,))
+                    
+                    processing_thread = threading.Thread(target=self.process_zip, args=(entry.path,))
                     processing_thread.start()
                     processing_thread.join()
         
-        self.state = "END"
+        self.state = "PROCESS_DIRECTORIES"
     
-    def end(self):
+    def process_directories_state(self):
+        # Clasificar los directorios de contactos
+        
+        with os.scandir(self.base_directory) as entries:
+            for entry in entries:
+                if entry.is_dir():
+                    # Crear un hilo para procesar cada directorio de forma independiente
+                    
+                    processing_thread = threading.Thread(target=self.process_directory, args=(entry.path,))
+                    processing_thread.start()
+                    processing_thread.join()
+                    
+        self.state = "END"
+
+    def end_state(self):
         # Eliminar todos los archivos .zip del directorio base
 
         with os.scandir(self.base_directory) as entries:
@@ -87,11 +99,13 @@ class HistoryZipProcessor:
                     os.remove(entry.path)
     
     #                                        #
-    #   Métodos de procesamiento paralelo    #
+    #   Thread - Procesamiento de archivos   #
     #                                        #
     
     def process_zip(self, zip_file_path):
         # Descomprimir el archivo .zip y crear una carpeta para cada contacto
+        print("Procesando archivo: {}".format(zip_file_path))
+        sleep(2)
 
         zip_filename = os.path.basename(zip_file_path)
         contacto = self.obtener_contacto(zip_filename)
@@ -120,6 +134,91 @@ class HistoryZipProcessor:
         
         with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
             zip_ref.extractall(output_dir)
+    
+    #                                        #
+    #   Thread - Clasificación de archivos   #
+    #                                        #
+
+    def process_directory(self, directory_path):
+        # Crear subcarpetas y clasificar los archivos del directorio correspondiente
+        print("Clasificando directorio: {}".format(directory_path))
+        sleep(2)
+
+        self.crear_subcarpetas(directory_path)
+        with os.scandir(directory_path) as entries:
+            for entry in entries:
+                if entry.is_file():
+                    self.clasificar_archivo(entry, directory_path)
+    
+    def crear_subcarpetas(self, dir_path):
+        # Crear subcarpetas para organizar archivos dentro del directorio de contacto
+        
+        subfolders = ["audios", "images", "otros"]
+        for subfolder in subfolders:
+            os.makedirs(os.path.join(dir_path, subfolder), exist_ok=True)
+    
+    def clasificar_archivo(self, entry, directory_path):
+        # Clasificar archivo individual según su tipo
+        
+        if entry.name.endswith('.txt'):
+            # Renombrar archivo .txt a 'historial.txt'
+            new_name = "historial.txt"
+            os.rename(entry.path, os.path.join(directory_path, new_name))
+        elif entry.name.endswith('.opus'):
+            # Mover archivo .opus a la carpeta 'audios'
+            os.rename(entry.path, os.path.join(directory_path, "audios", entry.name))
+        elif entry.name.endswith('.jpg'):
+            # Mover archivo .jpg a la carpeta 'images'
+            os.rename(entry.path, os.path.join(directory_path, "images", entry.name))
+        else:
+            # Mover cualquier otro archivo a la carpeta 'otros'
+            os.rename(entry.path, os.path.join(directory_path, "otros", entry.name))
+    
+    #                                        #
+    #             Ejemplo de uso             #
+    #                                        #
+
+    # directory_historiales = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
+    # processor = HistoryZipProcessor(directory_historiales)
+    # processor.run()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ContactProcessor:
     def __init__(self, mongodb_uri: str, database_name: str, base_directory: str):
@@ -143,11 +242,11 @@ class ContactProcessor:
             sleep(1)
             
             if self.state == "INIT":
-                self.init()
+                self.init_state()
             elif self.state == "PROCESS_FILES":
-                self.process_files()
+                self.process_files_state()
             elif self.state == "END":
-                self.end()
+                self.end_state()
                 break
     
     def get_current_action(self):
@@ -177,10 +276,10 @@ class ContactProcessor:
     #    Métodos de estado y transiciones    #
     #                                        #
     
-    def init(self):
+    def init_state(self):
         self.state = "PROCESS_FILES"
     
-    def process_files(self):
+    def process_files_state(self):
         # Procesar todos los archivos .zip del directorio base
 
         with os.scandir(self.base_directory) as entries:
@@ -195,7 +294,7 @@ class ContactProcessor:
         
         self.state = "END"
     
-    def end(self):
+    def end_state(self):
         # Eliminar todos los archivos .zip del directorio base
 
         with os.scandir(self.base_directory) as entries:
@@ -307,7 +406,7 @@ def procesar_linea(mensaje):
         if adjunto_match:
             adjunto = adjunto_match.group(1)
             # Obtener cualquier texto adicional
-            texto_adicional = contenido[adjunto_match.end():].strip()
+            texto_adicional = contenido[adjunto_match.end_state():].strip()
             if texto_adicional:
                 contenido = texto_adicional
             else:
