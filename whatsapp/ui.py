@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import logging
 import time
 
-from whatsapp.whatsapp import WhatsAppWeb
+from whatsapp import WhatsAppWeb
 
 class WhatsAppUI:
     def __init__(self, WhatsappWeb: WhatsAppWeb):
