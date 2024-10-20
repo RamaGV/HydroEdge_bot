@@ -149,6 +149,7 @@ class HistoryZipProcessor:
             for entry in entries:
                 if entry.is_file():
                     self.clasificar_archivo(entry, directory_path)
+                    nombre_de_carpeta = os.path.basename(directory_path)
     
     def crear_subcarpetas(self, dir_path):
         # Crear subcarpetas para organizar archivos dentro del directorio de contacto
@@ -174,6 +175,11 @@ class HistoryZipProcessor:
             # Mover cualquier otro archivo a la carpeta 'otros'
             os.rename(entry.path, os.path.join(directory_path, "otros", entry.name))
     
+    def crear_contacto(self, nombre_de_carpeta):
+        # Crear contacto en MongoDB
+        
+        pass
+
     #                                        #
     #             Ejemplo de uso             #
     #                                        #
@@ -181,44 +187,6 @@ class HistoryZipProcessor:
     # directory_historiales = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
     # processor = HistoryZipProcessor(directory_historiales)
     # processor.run()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class ContactProcessor:
     def __init__(self, mongodb_uri: str, database_name: str, base_directory: str):
