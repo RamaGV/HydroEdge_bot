@@ -3,7 +3,7 @@ from driver_setup import configurar_driver
 from db_manager import cargar_contacto
 from whatsapp.contacto import Contacto
 from whatsapp.maquina_estados import Estado
-import utils as ut
+import whatsapp.utils as ut
 
 INIT = Estado.INIT
 STAND_BY = Estado.STAND_BY
