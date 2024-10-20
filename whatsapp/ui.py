@@ -21,7 +21,6 @@ class WhatsAppUI:
             "send_element": '//button[@aria-label="Enviar"]'
         }
     
-
     def abrir_whatsapp_web(self):
         self.driver.get("https://web.whatsapp.com/")
         try:
@@ -75,6 +74,7 @@ class WhatsAppUI:
             logging.info(f"Mensaje enviado.")
         except Exception as e:
             logging.error(f"Error al enviar el mensaje: {e}")
+    
     """
     def buscar_mensajes(self):
         contactos_con_buscar_mensajes = []
