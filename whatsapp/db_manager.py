@@ -10,18 +10,23 @@ class DBManager:
         self.contactos_collection = self.db['contactos']
         self.mensajes_collection = self.db['mensajes']
         print(f"Conectado a la base de datos: {database_name}")
-
+    
     def cargar_contacto(self, contacto_data: dict):
         # Cargar un nuevo contacto en la base de datos
-        filtro = {"numero_telefono": contacto_data.get("numero_telefono")}
-        contacto_existente = self.contactos_collection.find_one(filtro)
-
-        if contacto_existente:
+        filtro_telefono = {"numero_telefono": contacto_data.get("numero_telefono")}
+        contacto_existente_telefono = self.contactos_collection.find_one(filtro_telefono)
+        
+        filtro_nombre = {"nombre": contacto_data.get("nombre")}
+        contacto_existente_nombre = self.contactos_collection.find_one(filtro_nombre)
+        
+        if contacto_existente_telefono and contacto_data.get("numero_telefono") is not None:
             print(f"El contacto ya existe: {contacto_data.get('numero_telefono')}")
+        elif contacto_existente_nombre and contacto_data.get("nombre") is not None:
+            print(f"El contacto ya existe: {contacto_data.get('nombre')}")
         else:
             resultado = self.contactos_collection.insert_one(contacto_data)
             print(f"Contacto creado con ID: {resultado.inserted_id}")
-
+    
     def actualizar_contacto(self, contacto_id: ObjectId, nuevos_datos: dict):
         # Actualizar un contacto existente en la base de datos
         filtro = {"_id": ObjectId(contacto_id)}
@@ -32,17 +37,17 @@ class DBManager:
             print(f"Contacto con ID {contacto_id} actualizado correctamente.")
         else:
             print(f"No se encontró el contacto con ID {contacto_id} para actualizar.")
-
+    
     def cargar_mensaje(self, mensaje_data: dict):
         # Cargar un nuevo mensaje en la base de datos
         resultado = self.mensajes_collection.insert_one(mensaje_data)
         print(f"Mensaje creado con ID: {resultado.inserted_id}")
-
+    
     def cerrar_conexion(self):
         # Cerrar la conexión a la base de datos
         self.client.close()
         print("Conexión a la base de datos cerrada")
-
+    
 # Ejemplo de uso
 """
 if __name__ == "__main__":

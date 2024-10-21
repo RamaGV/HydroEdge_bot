@@ -4,10 +4,13 @@ import os
 import re
 import pymongo
 from time import sleep
-from app.db_manager import DBManager
+from db_manager import DBManager
 import threading
+import ffmpeg
 
 class HistoryZipProcessor:
+    # Procesar .pdf y .webp -> .webp son stickers, podria eliminarlos
+    
     def __init__(self, base_directory: str, mongodb_uri: str, database_name: str):
         self.base_directory = base_directory
         self.mongodb_uri = mongodb_uri
@@ -22,7 +25,7 @@ class HistoryZipProcessor:
     def run(self):
         while True:
             self.display_status()
-            sleep(1)
+            sleep(.1)
             
             if self.state == "INIT":
                 self.init_state()
@@ -64,9 +67,10 @@ class HistoryZipProcessor:
     #                                        #
     
     def init_state(self):
-        # Cargar y conectar a la base de datos
+        # Carga y conecta la base de datos
         self.db_manager = DBManager(self.mongodb_uri, self.database_name)
         print(f"Conexión a la base de datos '{self.database_name}' establecida")
+
         self.state = "PROCESS_FILES"
     
     def process_files_state(self):
@@ -75,11 +79,12 @@ class HistoryZipProcessor:
         with os.scandir(self.base_directory) as entries:
             for entry in entries:
                 if entry.is_file() and entry.name.endswith(".zip"):
-                    # Crear un hilo para procesar cada archivo de forma independiente
+                    # Crear un hilo para procesar cada archivo de forma paralela y borrarlo
                     
                     processing_thread = threading.Thread(target=self.process_zip, args=(entry.path,))
                     processing_thread.start()
                     processing_thread.join()
+                    os.remove(entry.path)
         
         self.state = "PROCESS_DIRECTORIES"
     
@@ -96,14 +101,13 @@ class HistoryZipProcessor:
                     processing_thread.join()
                     
         self.state = "END"
-
+    
     def end_state(self):
-        # Eliminar todos los archivos .zip del directorio base
-
-        with os.scandir(self.base_directory) as entries:
-            for entry in entries:
-                if entry.is_file() and entry.name.endswith('.zip'):
-                    os.remove(entry.path)
+        # Cerrar la conexión a la base de datos
+        
+        if self.db_manager:
+            self.db_manager.cerrar_conexion()
+            print(f"Conexión a la base de datos '{self.database_name}' cerrada")
     
     #                                        #
     #   Thread - Procesamiento de archivos   #
@@ -112,7 +116,7 @@ class HistoryZipProcessor:
     def process_zip(self, zip_file_path):
         # Descomprimir el archivo .zip y crear una carpeta para cada contacto
         print("Procesando archivo: {}".format(zip_file_path))
-        sleep(1)
+        #sleep(.1)
         
         zip_filename = os.path.basename(zip_file_path)
         contacto = self.obtener_contacto(zip_filename)
@@ -154,21 +158,21 @@ class HistoryZipProcessor:
 
         self.db_manager.cargar_contacto(contacto_data)
         print(f"Contacto {contacto_data} creado en la base de datos")
-
+    
     #                                        #
     #   Thread - Clasificación de archivos   #
     #                                        #
-
+    
     def process_directory(self, directory_path):
         # Crear subcarpetas y clasificar los archivos del directorio correspondiente
         print("Clasificando directorio: {}".format(directory_path))
-        sleep(2)
-
+        sleep(.1)
+        
         self.crear_subcarpetas(directory_path)
         with os.scandir(directory_path) as entries:
             for entry in entries:
                 if entry.is_file():
-                    self.clasificar_archivo(entry, directory_path)
+                    self.clasificar_archivos(entry, directory_path)
                     nombre_de_carpeta = os.path.basename(directory_path)
     
     def crear_subcarpetas(self, dir_path):
@@ -178,7 +182,7 @@ class HistoryZipProcessor:
         for subfolder in subfolders:
             os.makedirs(os.path.join(dir_path, subfolder), exist_ok=True)
     
-    def clasificar_archivo(self, entry, directory_path):
+    def clasificar_archivos(self, entry, directory_path):
         # Clasificar archivo individual según su tipo
         
         if entry.name.endswith('.txt'):
@@ -195,30 +199,29 @@ class HistoryZipProcessor:
             # Mover cualquier otro archivo a la carpeta 'otros'
             os.rename(entry.path, os.path.join(directory_path, "otros", entry.name))
     
-    def crear_contacto(self, nombre_de_carpeta):
-        # Crear contacto en MongoDB
-        
-        pass
-
     #                                        #
     #             Ejemplo de uso             #
     #                                        #
 
-    # directory_historiales = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
-    # processor = HistoryZipProcessor(directory_historiales)
-    # processor.run()
+if __name__ == "__main__":
+    # Directorio donde están los archivos ZIP a procesar
+    base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
+
+    # Datos de conexión a MongoDB
+    mongodb_uri = "mongodb://localhost:27017/"
+    database_name = "whatsapp_db"
+
+    # Instancia del procesador de archivos ZIP
+    processor = HistoryZipProcessor(base_directory, mongodb_uri, database_name)
+    processor.run()
 
 class ContactProcessor:
-    def __init__(self, mongodb_uri: str, database_name: str, base_directory: str):
+    def __init__(self, base_directory: str, mongodb_uri: str, database_name: str):
+        self.base_directory = base_directory
         self.mongodb_uri = mongodb_uri
         self.database_name = database_name
-        self.base_directory = base_directory
         self.state = "INIT"
-        
-        # Ejemplo de uso del procesador
-        # directory_historiales = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
-        # processor = ContactProcessor("mongodb://localhost:27017/", "whatsapp_db", directory_historiales)
-        # processor.run()
+        self.db_manager = None
     
     #                                        #
     #       FSM - Finite State Machine       #
@@ -227,28 +230,39 @@ class ContactProcessor:
     def run(self):
         while True:
             self.display_status()
-            sleep(1)
             
             if self.state == "INIT":
                 self.init_state()
-            elif self.state == "PROCESS_FILES":
-                self.process_files_state()
+            elif self.state == "PROCESS_CONTACTS":
+                self.process_contacts_state()
+                
+                self.state = "END"
+            elif self.state == "SAVE_MESSAGES":
+                # Primero PROCESS_CONTACTS, luego SAVE_MESSAGES
+
+                #self.save_messages_state()
+                self.state = "END"
             elif self.state == "END":
                 self.end_state()
                 break
-    
+
+            sleep(2)
+
+
     def get_current_action(self):
         if self.state == "INIT":
             return "Inicializando el procesador"
-        elif self.state == "PROCESS_FILES":
-            return "Procesando archivos ZIP en el directorio"
+        elif self.state == "PROCESS_CONTACTS":
+            return "Procesando contactos en paralelo"
+        elif self.state == "SAVE_MESSAGES":
+            return "Guardando mensajes en la base de datos"
         elif self.state == "END":
             return "Proceso finalizado"
         return "Esperando..."
-    
+
     def display_status(self):
         os.system('cls' if os.name == 'nt' else 'clear')
-        header = "FSM - WhatsApp History Processor"
+        header = "FSM - Contact Processor"
         action = self.get_current_action()
         status_line = "ESTADO ACTUAL> {}".format(self.state)
         border = "*" * 73
@@ -261,40 +275,143 @@ class ContactProcessor:
         print(border)
     
     #                                        #
-    #    Métodos de estado y transiciones    #
+    #    Métodos de estados y transiciones   #
     #                                        #
     
     def init_state(self):
-        self.state = "PROCESS_FILES"
-    
-    def process_files_state(self):
-        # Procesar todos los archivos .zip del directorio base
+        # Carga y conecta la base de datos
+        self.db_manager = DBManager(self.mongodb_uri, self.database_name)
+        print(f"Conexión a la base de datos '{self.database_name}' establecida")
 
+        self.state = "PROCESS_CONTACTS"
+    
+    def process_contacts_state(self):
+        # Recorre los directorios de contactos y ejecuta métodos en paralelo para cada directorio, que representa cada contacto
+        
         with os.scandir(self.base_directory) as entries:
             for entry in entries:
-                if entry.is_file() and entry.name.endswith(".zip"):
-                    zip_file_path = entry.path
+                if entry.is_dir():
+                    # Procesar cada directorio en un hilo
                     
-                    # Crear un hilo para procesar cada archivo de forma independiente
-                    processing_thread = threading.Thread(target=self.process_zip, args=(zip_file_path,))
+                    processing_thread = threading.Thread(target=self.process_contact, args=(entry.path,))
                     processing_thread.start()
                     processing_thread.join()
+
+        self.state = "SAVE_MESSAGES"
+    
+    def save_messages_state(self):
+        # Procesar y guardar los mensajes de cada contacto
+        with os.scandir(self.base_directory) as entries:
+            for entry in entries:
+                if entry.is_dir():
+                    # Procesar historial de cada contacto
+                    self.save_messages(entry.path)
         
         self.state = "END"
     
     def end_state(self):
-        # Eliminar todos los archivos .zip del directorio base
-
-        with os.scandir(self.base_directory) as entries:
+        # Cerrar la conexión a la base de datos
+        self.db_manager.cerrar_conexion()
+        print(f"Conexión a la base de datos '{self.database_name}' cerrada")
+    
+    #                                        #
+    #   Thread - Procesando archivos         #
+    #                                        #
+    
+    def process_contact(self, directory_path):
+        # Procesar los archivos dentro de los directorios audios, images y otros en paralelo
+        
+        print(f"Procesando archivos de {directory_path}")        
+        with os.scandir(directory_path) as entries:
             for entry in entries:
-                if entry.is_file() and entry.name.endswith('.zip'):
-                    os.remove(entry.path)
+                if entry.is_dir():
+                    if entry.name == 'audios':
+                        self.process_audios(directory_path)
+                    elif entry.name == 'images':
+                        self.process_images(directory_path)
+                    elif entry.name == 'otros':
+                        self.process_other_files(directory_path)
     
+    def process_audios(self, directory_path):
+        # Convierte archivos .opus -> .mp3 y utiliza whisper para transcribir, creando un archivo .txt con el resultado
+        # Ejemplo: PTT-20230401-WA0007.opus -> PTT-20230401-WA0007.mp3 -> PTT-20230401-WA0007.txt
+        print(f"Procesando audios en: {directory_path}")
+        
+        with os.scandir(directory_path) as entries:
+            for entry in entries:
+                if entry.is_file() and entry.name.endswith('.opus'):
+                    # Convertir archivo .opus a .mp3
+                    
+                    opus_path = entry.path
+                    mp3_path = opus_path.replace('.opus', '.mp3')
+                    # (
+                    #     ffmpeg
+                    #     .input(opus_path)
+                    #     .output(mp3_path)
+                    #     .run(overwrite_output=True)
+                    # )
+                    print(f"Convertido: {opus_path} -> {mp3_path}")
+                    sleep(.5)
+    
+    def process_images(self, directory_path):
+        # Procesar las imágenes (interpretar, etc.)
+
+        print(f"Procesando imágenes en {directory_path}")
+        pass  # Implementar lógica de procesamiento de imágenes
+    
+    def process_other_files(self, directory_path):
+        # Procesar otros archivos (PDFs, etc.)
+
+        print(f"Procesando otros archivos en {directory_path}")
+        pass  # Implementar lógica de procesamiento de otros archivos
+
     #                                        #
-    #   Métodos de procesamiento paralelo    #
+    #        Guardar mensajes                #
     #                                        #
+    
+    def save_messages(self, directory_path):
+        # Procesar el historial.txt de cada contacto y guardar los mensajes
+
+        historial_path = os.path.join(directory_path, 'historial.txt')
+        if os.path.exists(historial_path):
+            print(f"Guardando mensajes desde {historial_path}")
+            self.recorrer_lineas(historial_path)
+    
+    def recorrer_lineas(self, historial_path):
+        # Leer líneas del historial y generar/guardar mensajes
+        with open(historial_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                mensaje = self.generar_mensaje(line)
+                self.guardar_mensaje(mensaje)
+    
+    def generar_mensaje(self, linea):
+        # Generar un objeto mensaje basado en la línea del historial
+        print(f"Generando mensaje: {linea.strip()}")
+        pass  # Implementar lógica para generar el mensaje
+    
+    def guardar_mensaje(self, mensaje):
+        # Guardar el mensaje en la base de datos
+        print(f"Guardando mensaje: {mensaje}")
+        pass  # Implementar lógica para guardar el mensaje en la base de datos
+    
+    def anexar_mensaje(self, mensaje, historial_path):
+        # Anexar el mensaje al archivo de historial.txt
+        with open(historial_path, 'a', encoding='utf-8') as file:
+            file.write(f"{mensaje}\n")
+        print(f"Mensaje anexado en {historial_path}")
     
 
+    # if __name__ == "__main__":
+    #     # Directorio donde están los archivos ZIP a procesar
+    #     base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
+
+    #     # Datos de conexión a MongoDB
+    #     mongodb_uri = "mongodb://localhost:27017/"
+    #     database_name = "whatsapp_db"
+
+    #     # Instancia del procesador de archivos ZIP
+    #     processor = ContactProcessor(base_directory, mongodb_uri, database_name)
+    #     processor.run()
 
 
 
