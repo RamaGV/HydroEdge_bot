@@ -4,12 +4,16 @@ import os
 import re
 import pymongo
 from time import sleep
+from app.db_manager import DBManager
 import threading
 
 class HistoryZipProcessor:
-    def __init__(self, base_directory: str):
+    def __init__(self, base_directory: str, mongodb_uri: str, database_name: str):
         self.base_directory = base_directory
+        self.mongodb_uri = mongodb_uri
+        self.database_name = database_name
         self.state = "INIT"
+        self.db_manager = None
     
     #                                        #
     #       FSM - Finite State Machine       #
@@ -60,6 +64,9 @@ class HistoryZipProcessor:
     #                                        #
     
     def init_state(self):
+        # Cargar y conectar a la base de datos
+        self.db_manager = DBManager(self.mongodb_uri, self.database_name)
+        print(f"Conexión a la base de datos '{self.database_name}' establecida")
         self.state = "PROCESS_FILES"
     
     def process_files_state(self):
@@ -105,13 +112,14 @@ class HistoryZipProcessor:
     def process_zip(self, zip_file_path):
         # Descomprimir el archivo .zip y crear una carpeta para cada contacto
         print("Procesando archivo: {}".format(zip_file_path))
-        sleep(2)
-
+        sleep(1)
+        
         zip_filename = os.path.basename(zip_file_path)
         contacto = self.obtener_contacto(zip_filename)
         if contacto:
             output_dir = self.crear_carpeta(contacto, self.base_directory)
             self.descomprimir(zip_file_path, output_dir)
+            self.crear_contacto(contacto)
     
     def obtener_contacto(self, zip_filename):
         # Extraer el nombre de contacto del nombre del archivo .zip
@@ -135,6 +143,18 @@ class HistoryZipProcessor:
         with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
             zip_ref.extractall(output_dir)
     
+    def crear_contacto(self, nombre_contacto):
+        # Crear contacto en MongoDB
+        
+        contacto_data = {}
+        if nombre_contacto.startswith("+"):
+            contacto_data['numero_telefono'] = nombre_contacto
+        else:
+            contacto_data['nombre'] = nombre_contacto
+
+        self.db_manager.cargar_contacto(contacto_data)
+        print(f"Contacto {contacto_data} creado en la base de datos")
+
     #                                        #
     #   Thread - Clasificación de archivos   #
     #                                        #

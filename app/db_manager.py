@@ -1,61 +1,68 @@
-# db_manager.py
-from whatsapp.contacto import Contacto
+import pymongo
 from pymongo import MongoClient
-import logging
+from bson import ObjectId
 
-# Configuración de la conexión a MongoDB
-client = MongoClient('mongodb://localhost:27017/')
-db = client.whatsapp_db
-chats_collection = db.chats
+class DBManager:
+    def __init__(self, mongodb_uri: str, database_name: str):
+        # Conectar a la base de datos
+        self.client = MongoClient(mongodb_uri)
+        self.db = self.client[database_name]
+        self.contactos_collection = self.db['contactos']
+        self.mensajes_collection = self.db['mensajes']
+        print(f"Conectado a la base de datos: {database_name}")
 
-def cargar_contacto(nombre):
-    # Busca el contacto en la base de datos por su nombre
-    resultado = chats_collection.find_one({"nombre": nombre})
-    
-    if resultado:
-        # Crea y devuelve una instancia de Contacto usando los datos de la base de datos
-        return Contacto(
-            nombre=resultado["nombre"],
-            celular=resultado["celular"],
-            estado=resultado.get("estado", "activo"),
-            ultimo_mensaje=resultado.get("ultimo_mensaje"),
-            fecha_ultimo_mensaje=resultado.get("fecha_ultimo_mensaje"),
-            mensajes_no_leidos=resultado.get("mensajes_no_leidos", 0),
-            historial_txt=resultado.get("historial_txt", f"historial_{resultado['celular']}.txt")
-        )
-    else:
-        # Si no se encuentra el contacto, devuelve None y muestra un mensaje de advertencia
-        logging.warning(f"No se encontró un contacto con el nombre: {nombre}")
-        return None
+    def cargar_contacto(self, contacto_data: dict):
+        # Cargar un nuevo contacto en la base de datos
+        filtro = {"numero_telefono": contacto_data.get("numero_telefono")}
+        contacto_existente = self.contactos_collection.find_one(filtro)
 
-def actualizar_contacto(contacto):
-    # Busca si el contacto ya existe en la base de datos
-    resultado = chats_collection.find_one({"nombre": contacto.nombre})
-    
-    if resultado:
-        # Si el contacto existe, actualiza la información
-        chats_collection.update_one(
-            {"nombre": contacto.nombre},
-            {"$set": {
-                "celular": contacto.celular,
-                "estado": contacto.estado,
-                "ultimo_mensaje": contacto.ultimo_mensaje,
-                "fecha_ultimo_mensaje": contacto.fecha_ultimo_mensaje,
-                "mensajes_no_leidos": contacto.mensajes_no_leidos,
-                "historial_txt": contacto.historial_txt
-            }}
-        )
-        logging.info(f"Contacto '{contacto.nombre}' actualizado en la base de datos.")
-    else:
-        # Si el contacto no existe, inserta un nuevo registro
-        nuevo_contacto = {
-            "nombre": contacto.nombre,
-            "celular": contacto.celular,
-            "estado": contacto.estado,
-            "ultimo_mensaje": contacto.ultimo_mensaje,
-            "fecha_ultimo_mensaje": contacto.fecha_ultimo_mensaje,
-            "mensajes_no_leidos": contacto.mensajes_no_leidos,
-            "historial_txt": contacto.historial_txt
-        }
-        chats_collection.insert_one(nuevo_contacto)
-        logging.info(f"Nuevo contacto '{contacto.nombre}' agregado a la base de datos.")
+        if contacto_existente:
+            print(f"El contacto ya existe: {contacto_data.get('numero_telefono')}")
+        else:
+            resultado = self.contactos_collection.insert_one(contacto_data)
+            print(f"Contacto creado con ID: {resultado.inserted_id}")
+
+    def actualizar_contacto(self, contacto_id: ObjectId, nuevos_datos: dict):
+        # Actualizar un contacto existente en la base de datos
+        filtro = {"_id": ObjectId(contacto_id)}
+        actualizacion = {"$set": nuevos_datos}
+        resultado = self.contactos_collection.update_one(filtro, actualizacion)
+
+        if resultado.matched_count > 0:
+            print(f"Contacto con ID {contacto_id} actualizado correctamente.")
+        else:
+            print(f"No se encontró el contacto con ID {contacto_id} para actualizar.")
+
+    def cargar_mensaje(self, mensaje_data: dict):
+        # Cargar un nuevo mensaje en la base de datos
+        resultado = self.mensajes_collection.insert_one(mensaje_data)
+        print(f"Mensaje creado con ID: {resultado.inserted_id}")
+
+    def cerrar_conexion(self):
+        # Cerrar la conexión a la base de datos
+        self.client.close()
+        print("Conexión a la base de datos cerrada")
+
+# Ejemplo de uso
+"""
+if __name__ == "__main__":
+    mongodb_uri = "mongodb://localhost:27017/"
+    database_name = "whatsapp_db"
+    db_manager = DBManager(mongodb_uri, database_name)
+
+    # Crear un contacto de ejemplo
+    contacto_data = {
+        "nombre": "Gregorio Martínez",
+        "numero_telefono": "+598 98 453 709",
+        "alias": "Greg",
+        "estado": "nuevo"
+    }
+    db_manager.cargar_contacto(contacto_data)
+
+    # Actualizar el contacto
+    nuevos_datos = {"estado": "activo"}
+    db_manager.actualizar_contacto(contacto_data.get("_id"), nuevos_datos)
+
+    # Cerrar la conexión
+    db_manager.cerrar_conexion()
+"""
