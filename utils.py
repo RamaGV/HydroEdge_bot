@@ -113,7 +113,7 @@ class ContactProcessor:
         print(f"Conexión a la base de datos '{self.database_name}' cerrada")
     
     #                                        #
-    #     Proceso de archivos de contacto    #
+    #    Proceso de archivos de contactos    #
     #                                        #
     
     def process_contact(self, directory_path):
@@ -135,19 +135,18 @@ class ContactProcessor:
                         #self.process_audio(entry.path)
                         pass
                     elif dir_path == images_dir:
-                        #self.process_images(entry.path)
-                        pass
+                        self.process_images(entry.path)
+                        #pass
                     elif dir_path == others_dir:
                         #self.process_other_files(entry.path)
                         pass
-
+    
     def process_audio(self, audio_path):
         # Convierte archivos .opus -> .mp3 y utiliza whisper para transcribir, creando un archivo .txt con el resultado
         # Ejemplo: PTT-20230401-WA0007.opus -> PTT-20230401-WA0007.mp3 -> PTT-20230401-WA0007.txt
         print(f"Procesando audio: {audio_path}")
         
         audio_mp3 = whisper_loader.convertir_audio(audio_path)
-        
         if audio_mp3 is not None:
             os.remove(audio_path)
             print(f"Transcribiendo audio {audio_mp3}")
@@ -165,11 +164,16 @@ class ContactProcessor:
             else:
                 print(f"No se pudo transcribir el archivo {os.path.basename(audio_mp3)}")
     
-    def process_images(self, directory_path):
+    def process_images(self, image_path):
         # Procesar las imágenes (interpretar, etc.)
+        if image_path.endswith('.jpg'):
+            print(f"Procesando imágen: {image_path}")
         
-        print(f"Procesando imágenes en {directory_path}")
-        pass  # Implementar lógica de procesamiento de imágenes
+        # Implementar lógica de procesamiento de las imágenes
+        # Llamar a API de openAI
+        # Solicitar la interpretación de la imagen
+        # Guardar la interpretación en un archivo .txt
+        # Implementar lógica de guardado de la interpretación en un archivo .txt
     
     def process_other_files(self, directory_path):
         # Procesar otros archivos (PDFs, etc.)
@@ -436,8 +440,8 @@ if __name__ == "__main__":
     database_name = "whatsapp_db"
     
     # Instancia del procesador de archivos ZIP
-    processor = HistoryZipProcessor(base_directory, mongodb_uri, database_name)
-    processor.run()
+    # processor = HistoryZipProcessor(base_directory, mongodb_uri, database_name)
+    # processor.run()
 
     # Instancia del procesador de contactos
     processor = ContactProcessor(base_directory, mongodb_uri, database_name)
