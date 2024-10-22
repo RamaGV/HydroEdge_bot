@@ -168,7 +168,6 @@ class ContactProcessor:
         # Procesar las imágenes (interpretar, etc.)
         if image_path.endswith('.jpg'):
             print(f"Procesando imágen: {image_path}")
-            print(f"Interpretando imágen {image_path}")
         
         # Implementar lógica de procesamiento de las imágenes
         # Llamar a API de openAI
