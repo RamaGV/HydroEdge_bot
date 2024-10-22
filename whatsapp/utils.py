@@ -203,17 +203,17 @@ class HistoryZipProcessor:
     #             Ejemplo de uso             #
     #                                        #
 
-if __name__ == "__main__":
-    # Directorio donde están los archivos ZIP a procesar
-    base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
+    # if __name__ == "__main__":
+    #     # Directorio donde están los archivos ZIP a procesar
+    #     base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
 
-    # Datos de conexión a MongoDB
-    mongodb_uri = "mongodb://localhost:27017/"
-    database_name = "whatsapp_db"
+    #     # Datos de conexión a MongoDB
+    #     mongodb_uri = "mongodb://localhost:27017/"
+    #     database_name = "whatsapp_db"
 
-    # Instancia del procesador de archivos ZIP
-    processor = HistoryZipProcessor(base_directory, mongodb_uri, database_name)
-    processor.run()
+    #     # Instancia del procesador de archivos ZIP
+    #     processor = HistoryZipProcessor(base_directory, mongodb_uri, database_name)
+    #     processor.run()
 
 class ContactProcessor:
     def __init__(self, base_directory: str, mongodb_uri: str, database_name: str):
@@ -247,8 +247,7 @@ class ContactProcessor:
                 break
 
             sleep(2)
-
-
+    
     def get_current_action(self):
         if self.state == "INIT":
             return "Inicializando el procesador"
@@ -259,7 +258,7 @@ class ContactProcessor:
         elif self.state == "END":
             return "Proceso finalizado"
         return "Esperando..."
-
+    
     def display_status(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         header = "FSM - Contact Processor"
@@ -364,7 +363,7 @@ class ContactProcessor:
 
         print(f"Procesando otros archivos en {directory_path}")
         pass  # Implementar lógica de procesamiento de otros archivos
-
+    
     #                                        #
     #        Guardar mensajes                #
     #                                        #
@@ -400,7 +399,6 @@ class ContactProcessor:
             file.write(f"{mensaje}\n")
         print(f"Mensaje anexado en {historial_path}")
     
-
     # if __name__ == "__main__":
     #     # Directorio donde están los archivos ZIP a procesar
     #     base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
