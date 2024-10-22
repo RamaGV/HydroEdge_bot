@@ -79,7 +79,6 @@ def transcribir_audio(model, audio_path, language='es') -> str:
         traceback.print_exc()
         return None
 
-
 def save_transcription(text, transcription_path):
     """
     Guarda la transcripción en un archivo de texto.
