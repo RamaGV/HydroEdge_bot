@@ -1,5 +1,9 @@
 # test.py
+<<<<<<< HEAD
 import whisper_loader
+=======
+import app.whisper_loader as whisper_loader
+>>>>>>> 54a2905435697338071f8ecd8469d96d97786f76
 import os
 
 # Cargar el modelo Whisper
