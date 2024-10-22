@@ -7,9 +7,17 @@ from time import sleep
 from db_manager import DBManager
 import threading
 import ffmpeg
+import concurrent.futures
+import subprocess
+from whisper import whisper_loader
 
 class HistoryZipProcessor:
-    # Procesar .pdf y .webp -> .webp son stickers, podria eliminarlos
+    
+    #                                        #
+    #               Pendientes               #
+    #                                        #
+    
+    # Procesar en otros .pdf y .webp -> .webp son stickers, podria eliminarlos
     
     def __init__(self, base_directory: str, mongodb_uri: str, database_name: str):
         self.base_directory = base_directory
@@ -202,26 +210,35 @@ class HistoryZipProcessor:
     #                                        #
     #             Ejemplo de uso             #
     #                                        #
-
+    
     # if __name__ == "__main__":
     #     # Directorio donde están los archivos ZIP a procesar
     #     base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
-
+    
     #     # Datos de conexión a MongoDB
     #     mongodb_uri = "mongodb://localhost:27017/"
     #     database_name = "whatsapp_db"
-
+    
     #     # Instancia del procesador de archivos ZIP
     #     processor = HistoryZipProcessor(base_directory, mongodb_uri, database_name)
     #     processor.run()
 
 class ContactProcessor:
+    
+    #                                        #
+    #               Pendientes               #
+    #                                        #
+    
+    # Cargar whisper en INIT
+    # 
+
     def __init__(self, base_directory: str, mongodb_uri: str, database_name: str):
         self.base_directory = base_directory
         self.mongodb_uri = mongodb_uri
         self.database_name = database_name
         self.state = "INIT"
         self.db_manager = None
+        self.whisper_model = whisper_loader.load_whisper_model("small") 
     
     #                                        #
     #       FSM - Finite State Machine       #
@@ -285,17 +302,21 @@ class ContactProcessor:
         self.state = "PROCESS_CONTACTS"
     
     def process_contacts_state(self):
-        # Recorre los directorios de contactos y ejecuta métodos en paralelo para cada directorio, que representa cada contacto
-        
+       # Recorre los directorios de contactos y ejecuta métodos en paralelo para cada directorio
+
+        threads = []
         with os.scandir(self.base_directory) as entries:
             for entry in entries:
                 if entry.is_dir():
                     # Procesar cada directorio en un hilo
-                    
+
                     processing_thread = threading.Thread(target=self.process_contact, args=(entry.path,))
                     processing_thread.start()
-                    processing_thread.join()
+                    threads.append(processing_thread)
+        # Esperar a que todos los hilos terminen
 
+        for t in threads:
+            t.join()
         self.state = "SAVE_MESSAGES"
     
     def save_messages_state(self):
@@ -318,39 +339,54 @@ class ContactProcessor:
     #                                        #
     
     def process_contact(self, directory_path):
-        # Procesar los archivos dentro de los directorios audios, images y otros en paralelo
+        # Procesar los archivos dentro de los directorios audios, images y otros
+        print(f"Procesando archivos de {directory_path}")
         
-        print(f"Procesando archivos de {directory_path}")        
-        with os.scandir(directory_path) as entries:
-            for entry in entries:
-                if entry.is_dir():
-                    if entry.name == 'audios':
-                        self.process_audios(directory_path)
-                    elif entry.name == 'images':
-                        self.process_images(directory_path)
-                    elif entry.name == 'otros':
-                        self.process_other_files(directory_path)
+        audio_dir = os.path.join(directory_path, 'audios')
+        images_dir = os.path.join(directory_path, 'images')
+        others_dir = os.path.join(directory_path, 'otros')
+        
+        for dir_path in [audio_dir, images_dir, others_dir]:
+            print(f"Procesando directorio: {dir_path}")
+
+            with os.scandir(dir_path) as entries:
+                for entry in entries:
+                    # Recorre los tres directorios y ejecuta el méotodo correspondiente
+
+                    if entry.is_file():
+                        if entry.name == audio_dir:
+                            self.process_audio(entry.path)
+                        elif entry.name == images_dir:
+                            self.process_images(entry.path)
+                        elif entry.name == others_dir:
+                            self.process_other_files(entry.path)
     
-    def process_audios(self, directory_path):
+    def process_audio(self, audio_path):
         # Convierte archivos .opus -> .mp3 y utiliza whisper para transcribir, creando un archivo .txt con el resultado
         # Ejemplo: PTT-20230401-WA0007.opus -> PTT-20230401-WA0007.mp3 -> PTT-20230401-WA0007.txt
-        print(f"Procesando audios en: {directory_path}")
+        print(f"Procesando audio: {audio_path}")
         
-        with os.scandir(directory_path) as entries:
-            for entry in entries:
-                if entry.is_file() and entry.name.endswith('.opus'):
-                    # Convertir archivo .opus a .mp3
-                    
-                    opus_path = entry.path
-                    mp3_path = opus_path.replace('.opus', '.mp3')
-                    # (
-                    #     ffmpeg
-                    #     .input(opus_path)
-                    #     .output(mp3_path)
-                    #     .run(overwrite_output=True)
-                    # )
-                    print(f"Convertido: {opus_path} -> {mp3_path}")
-                    sleep(.5)
+        # def process_file(audio_file):
+        #     # Transcribir el audio usando whisper_loader
+            
+        #     audio_path = audio_file.path            
+        #     text = whisper_loader.transcribir_audio(self.whisper_model, audio_path, language='es')
+        #     if text is not None:
+        #         # Guardar la transcripción en un archivo .txt con el mismo nombre base
+                
+        #         base_name = os.path.splitext(audio_file.name)[0]
+        #         txt_path = os.path.join(audio_dir, f"{base_name}.txt")
+        #         with open(txt_path, 'w', encoding='utf-8') as f:
+        #             f.write(text)
+        #         print(f"Transcripción guardada en {txt_path}")
+        #     else:
+        #         print(f"No se pudo transcribir el archivo {audio_file.name}")
+        
+        # # Procesar archivos en paralelo
+        # with os.scandir(audio_dir) as entries:
+        #     audio_files = [entry for entry in entries if entry.is_file() and entry.name.endswith(('.opus', '.mp3', '.wav', '.m4a'))]
+        #     with concurrent.futures.ThreadPoolExecutor() as executor:
+        #         executor.map(process_file, audio_files)
     
     def process_images(self, directory_path):
         # Procesar las imágenes (interpretar, etc.)
@@ -398,18 +434,18 @@ class ContactProcessor:
         with open(historial_path, 'a', encoding='utf-8') as file:
             file.write(f"{mensaje}\n")
         print(f"Mensaje anexado en {historial_path}")
+
+if __name__ == "__main__":
+    # Directorio donde están los archivos ZIP a procesar
+    base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
     
-    # if __name__ == "__main__":
-    #     # Directorio donde están los archivos ZIP a procesar
-    #     base_directory = "C:/Users/ramag/OneDrive/Desktop/HydroEdge/HydroEdge_bot/data/historiales"
-
-    #     # Datos de conexión a MongoDB
-    #     mongodb_uri = "mongodb://localhost:27017/"
-    #     database_name = "whatsapp_db"
-
-    #     # Instancia del procesador de archivos ZIP
-    #     processor = ContactProcessor(base_directory, mongodb_uri, database_name)
-    #     processor.run()
+    # Datos de conexión a MongoDB
+    mongodb_uri = "mongodb://localhost:27017/"
+    database_name = "whatsapp_db"
+    
+    # Instancia del procesador de archivos ZIP
+    processor = ContactProcessor(base_directory, mongodb_uri, database_name)
+    processor.run()
 
 
 

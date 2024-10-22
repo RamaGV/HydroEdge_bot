@@ -1,3 +1,4 @@
+# whisper_loader.py
 import whisper
 import torch
 import os
@@ -35,39 +36,57 @@ def convertir_audio(audio_path):
         converted_path = os.path.splitext(audio_path)[0] + ".mp3"
         try:
             print(f"Iniciando conversión de {audio_path} a formato MP3...")
-            subprocess.run(["ffmpeg", "-i", audio_path, converted_path], check=True)
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", audio_path, converted_path],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT
+            )
             print(f"Archivo convertido exitosamente a: {converted_path}")
             return converted_path
         except subprocess.CalledProcessError as e:
             print(f"Error al convertir el archivo: {e}")
             return None
         except FileNotFoundError:
-            print("Error: ffmpeg no está instalado o no se encuentra en el PATH del sistema. Puedes instalar ffmpeg siguiendo las instrucciones en https://ffmpeg.org/download.html y asegurándote de agregarlo al PATH de tu sistema.")
+            print("Error: ffmpeg no está instalado o no se encuentra en el PATH del sistema.")
             return None
     else:
         print(f"El archivo {audio_path} no requiere conversión.")
         return audio_path
 
-def transcribir_audio(model, audio_path):
+def transcribir_audio(model, audio_path, language='es'):
+    """
+    Transcribe el archivo de audio usando el modelo Whisper.
+    Args:
+        model: El modelo Whisper cargado.
+        audio_path (str): Ruta del archivo de audio.
+        language (str): Idioma para la transcripción.
+    Returns:
+        str: Texto de la transcripción, o None si hubo un error.
+    """
     # Convertir el archivo si es necesario
     audio_path = convertir_audio(audio_path)
     if not audio_path:
-        return
-    
+        return None  # Retorna None si la conversión falla
+
     # Transcribir el archivo de audio completo usando el modelo Whisper
     try:
         print(f"Iniciando transcripción del archivo {audio_path}...")
-        result = model.transcribe(audio_path)
+        result = model.transcribe(audio_path, language=language)
         text = result['text']
-        print(f"Transcripción del archivo {audio_path}:
-{text}")
-        save_transcription(text)
+        print(f"Transcripción del archivo {audio_path}:\n{text}")
+        return text
     except Exception as e:
         print(f"Error al transcribir el archivo {audio_path}: {e}")
+        return None
 
-def save_transcription(text):
-    # Guardar la transcripción en un archivo de texto
-    transcription_path = os.path.join(os.path.dirname(__file__), "transcription.txt")
+def save_transcription(text, transcription_path):
+    """
+    Guarda la transcripción en un archivo de texto.
+    Args:
+        text (str): Texto de la transcripción.
+        transcription_path (str): Ruta donde guardar la transcripción.
+    """
     with open(transcription_path, "w", encoding="utf-8") as file:
         file.write(text)
     print(f"Transcripción guardada en {transcription_path}.")

@@ -1,6 +1,6 @@
 # whatsapp/whatsapp_web.py
 import logging
-from contacto import Contacto
+from app.contacto import Contacto
  
 class WhatsAppWeb:
     _instance = None
